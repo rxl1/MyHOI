@@ -1,0 +1,16 @@
+# H2O 数据集
+name: "h2o"
+root: "data/h2o"
+obj_root: "data/h2o/object"             # 物体根目录
+npz_data_path: "data/h2o/h2o_HOI_data.npz"
+data_obj_pc_path: "data/h2o/h2o_objcet.pkl"    # 经过点云处理后的物体pkl文件路径
+balance_weights_path: "data/h2o/balance_weights.pkl"
+text_json: "data/h2o/text.json"
+t2l_json: "data/h2o/text_length.json"
+t2c_json: "data/h2o/text_count.json"
+flat_hand: True    # 是否平展手
+max_nframes: 150   # 最大帧长度
+data_ratio: 1.0    # 数据比例
+augm: False        # 是否开启数据增强
+data_num: 660      # 数据数量
+text_num: 68       # 文本数量
