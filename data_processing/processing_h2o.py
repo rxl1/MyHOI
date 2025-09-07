@@ -418,8 +418,8 @@ def process_hand_object():
             action_total.append(prev_action)          # 动作标签（数字标识
             action_name_total.append(action_name)     # 动作名称（如“pick up cup
             nframes_total.append(len(object_rotmat_list)) # 动作序列长度（帧数
-            subject_total.append(data_path.split("/")[3]) # 数据所属主体（如“subject1
-            background_total.append(data_path.split("/")[4])  # 场景背景信息
+            subject_total.append(data_path.split("/")[3]) # 数据所属主体  subject1
+            background_total.append(data_path.split("/")[4])  # 场景背景信息  h1,h2,o1,o2,k1,k2...
     
     total_dict = {
         "x_lhand": x_lhand_total,  # 左手 / 右手处理后的特征数据
