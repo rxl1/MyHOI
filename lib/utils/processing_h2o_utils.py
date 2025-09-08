@@ -8,6 +8,25 @@ from pathlib import Path  # 需导入路径处理库pathlib的Path类
 
 import torch
 
+def process_text_h2o(
+    action_name, is_lhand, is_rhand, 
+    text_descriptions, return_key=False, 
+):
+    if is_lhand and is_rhand:
+        text = f"{action_name} with both hands."
+    elif is_lhand:
+        text = f"{action_name} with left hand."
+    elif is_rhand:
+        text = f"{action_name} with right hand."
+    text_key = text.capitalize() # Place cappuccino with right hand
+    if return_key:
+        return text_key
+    else:
+        text_description = text_descriptions[text_key]
+        text = np.random.choice(text_description)
+        return text
+
+
 def get_data_path_h2o(data_path):
     # 将输入路径转换为Path对象
     data_path = Path (data_path) # data_path = data/h2o
@@ -50,6 +69,7 @@ def process_hand_trans_h2o(hand_pose, hand_beta, hand_trans, extrinsic_matrix, h
         extrinsic_matrix, torch.cat((origin, torch.ones((1, 1)).cuda())))
     new_trans = mat_proj.T[0, :3] - hand_origin
     return new_trans.cpu().numpy(), hand_origin.cpu().numpy()
+
 if __name__ == "__main__":
     test_path = r"data/h2o/subject1/h1/0/cam4"
     hand_pose_manos, obj_pose_rts, cam_poses, action_labels  = get_data_path_h2o(test_path)

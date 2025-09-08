@@ -123,6 +123,7 @@ def get_which_hands_inter(lcf_idx, rcf_idx):
     if len(rcf_idx) > 0:
         is_rhand = 1
     return is_lhand, is_rhand
+
 # 
 def get_contact_idx(dist, contact_threshold):
     # Contact frame idx, Contact object verts idx, Contact hand joints idx

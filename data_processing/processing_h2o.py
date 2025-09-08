@@ -38,9 +38,10 @@ from constants.h2o_constants import (
 )
 
 from lib.utils.processing_h2o_utils import(
+    process_text_h2o,
     get_data_path_h2o,
     process_hand_pose_h2o,
-    process_hand_trans_h2o,
+    process_hand_trans_h2o
 )
 from lib.utils.processing_utils import (
     farthest_point_sample,  # 最远点采样
@@ -186,10 +187,6 @@ def process_hand_object():
     '''
         subject, background, object class, cam, 
     '''
-    # data_paths = glob.glob(osp.join(data_root, "subject1", "*", "*", "cam*"))
-    # data_paths += glob.glob(osp.join(data_root, "subject2", "*", "*", "cam*"))
-    # data_paths += glob.glob(osp.join(data_root, "subject3", "*", "*", "cam*")) # comment or not
-    # data_paths.sort()
 
     # 将 data_root 转换为 Path 对象
     data_root_path = Path(data_root)  # data/h2o/
@@ -458,9 +455,143 @@ def process_hand_object():
     )
     print("总共用时:", time.time()-start_time)
 
+def process_text():
+    # 加载h2o配置文件
+    h2o_config = load_config("configs/dataset/h2o.yaml")
+    text_json = h2o_config.text_json
+
+    text_description = {}
+    for action in action_list[1:]:
+        text_left = f"{action} with left hand.".capitalize()  # Grab book with left hand
+        text_right = f"{action} with right hand.".capitalize()
+        text_both = f"{action} with both hands.".capitalize()
+        # print(f"action:{action}")
+        # print(f"text_left:{text_left}")
+        # print(f"text_right:{text_right}")
+        # print(f"text_both:{text_both}")
+
+        # 现在进行时
+        action_verb, action_object = " ".join(action.split(" ")[:-1]), action.split(" ")[-1]
+        action_ving = present_participle[action_verb]
+        text_left1 = f"{action_ving} {action_object} with left hand.".capitalize()
+        text_right1 = f"{action_ving} {action_object} with right hand.".capitalize()
+        text_both1 = f"{action_ving} {action_object} with both hands.".capitalize()
+        # print(f"action_v:{action_verb}")
+        # print(f"action_o:{action_object}")
+        # print(f"text_left1:{text_left1}")
+        # print(f"text_right1:{text_right1}")
+        # print(f"text_both1:{text_both1}")
+
+        # 第三人称
+        action_3rd_v = third_verb[action_verb]
+        text_left2 = f"Left hand {action_3rd_v} {action_object}."
+        text_right2 = f"Right hand {action_3rd_v} {action_object}."
+        text_both2 = f"Both hands {action_verb} {action_object}."
+        
+        # 过去式
+        action_passive = passive_verb[action_verb]
+        text_left3 = f"{action_object} {action_passive} with left hand.".capitalize()
+        text_right3 = f"{action_object} {action_passive} with right hand.".capitalize()
+        text_both3 = f"{action_object} {action_passive} with both hands.".capitalize()
+
+        text_description[text_left] = [text_left, text_left1, text_left2, text_left3]
+        text_description[text_right] = [text_right, text_right1, text_right2, text_right3]
+        text_description[text_both] = [text_both, text_both1, text_both2, text_both3]
+
+    with open(text_json, "w") as f:
+        json.dump(text_description, f)
+
+def process_balance_weights():
+    h2o_config = load_config("configs/dataset/h2o.yaml")
+    npz_data_path = h2o_config.npz_data_path
+    balance_weights_path = h2o_config.balance_weights_path  # 平衡权重pkl文件
+    text_count_json_path = h2o_config.text_count_json
+
+
+    with np.load(npz_data_path, allow_pickle=True) as data:
+        is_lhand = data["is_lhand"]
+        is_rhand = data["is_rhand"]
+        action_name = data["action_name"]  
+
+    text_list = []
+    for i in range(len(action_name)):   # place cappuccino
+        text_key = process_text_h2o(
+            action_name[i], is_lhand[i], is_rhand[i], 
+            text_descriptions=None, return_key=True
+        )
+        text_list.append(text_key)  # Place cappuccino with right hand      text_list记录所有文本描述
+
+    text_counter = Counter(text_list)
+    # print(f"text_counter.type:{type(text_counter)}")
+    # for text_key, count in text_counter.items():
+    #     print(f"文本: {text_key}  出现次数: {count}")
+    text_dict = dict(text_counter)
+    # for k, v in text_dict.items():
+    #     print(f"k:{k}")
+    #     print(f"v:{v}")
+    # print(f"{text_dict}")
+    text_prob = {k:1/v for k, v in text_dict.items()}  # 计算权重（出现次数越多，权重越低，用于平衡样本）
+    h2o_balance_weights = [text_prob[text] for text in text_list]  # 权重列表:为每个样本生成对应的平衡权重
+    # with open(balance_weights_path, "wb") as f:  # 保存平衡权重到 pkl 文件（训练时使用）
+    #     pickle.dump(h2o_balance_weights, f)     
+    with open(text_count_json_path, "w") as f:  # 保存文本计数到 JSON 文件（用于统计分析）
+        json.dump(text_dict, f)
+
+def process_text_length():
+
+    h2o_config = load_config("configs/dataset/h2o.yaml")
+    npz_data_path = h2o_config.npz_data_path
+    text_length_json_path = h2o_config.text_length_json
+    
+    with np.load(npz_data_path, allow_pickle=True) as data:
+        is_lhand = data["is_lhand"]
+        is_rhand = data["is_rhand"]
+        action_name = data["action_name"]
+        nframes = data["nframes"]   # 每个样本的帧数(动作序列长度)
+
+    text_dict = {}
+    for i in range(len(action_name)):
+        # 生成当前样本的文本关键字（如"Pick up cup with left hand."）
+        text_key = process_text_h2o(
+            action_name[i], is_lhand[i], is_rhand[i], 
+            text_descriptions=None, return_key=True
+        )
+
+        # 获取当前样本的帧数，超过150则截断为150（限制最大序列长度
+        num_frames = int(nframes[i])
+        if num_frames > 150:
+            num_frames = 150
+        if text_key not in text_dict:
+            text_dict[text_key] = [num_frames]
+        else:
+            text_dict[text_key].append(num_frames)
+    # print(f"text_dict:{text_dict}")
+
+    with open(text_length_json_path, "w") as f:
+        json.dump(text_dict, f)
+
+def print_text_data_num():
+    h2o_config = load_config("configs/dataset/h2o.yaml")
+    npz_data_path = h2o_config.npz_data_path
+    text_length_json_path = h2o_config.text_length_json
+    
+    with np.load(npz_data_path, allow_pickle=True) as data:
+        action_name = data["action_name"]
+    print(f"data num: {len(action_name)}")
+    
+    with open(text_length_json_path, "r") as f:
+        text = json.load(f)
+    print(f"text num: {len(text)}")
+
 if __name__ == '__main__':
     # process_object()
     process_hand_object()
+    # process_text()
+    # process_balance_weights()
+    # process_text_length()
+
+    # print_text_data_num()
+
 
             
             

@@ -24,6 +24,9 @@ from easydict import EasyDict as edict
 import os.path as osp
 import sys
 sys.path.append(osp.dirname(osp.abspath(osp.dirname(__file__))))
+from lib.utils.file import load_config
+import numpy as np
+
 
 def read_h2o_project_pkl():
     
@@ -65,14 +68,42 @@ def read_h2o_project_pkl():
         print(f"point_sets数据形状:{point_sets[first_obj_name].shape}")  # 应为 (1024, 3)
         print(f"obj_paths:{obj_paths[first_obj_name]}")  # 应为 (1024, 3)（1024个3D点）
 
+
 def read_milk_obj():
     path = r"data\h2o\object\milk\milk.obj"
     mesh = trimesh.load(path, maintain_order=True)
     mesh.show()
 
+def read_balance_weight():
+    pkl_path = r"data\h2o\h2o_balance_weights.pkl"
+
+    with open(pkl_path, "rb") as data:
+        # 加载数据（返回的是保存时的字典对象）
+        data = pickle.load(data)
+    print(f"data的类型:{type(data)}")
+    print(f"data:{data[:5]}")
+
+
+def read_npz_data():
+    config = load_config("configs/dataset/h2o.yaml")
+    npz_data_path = config.npz_data_path
+
+    with np.load(npz_data_path, allow_pickle=True) as data:
+        is_lhand = data["is_lhand"]
+        is_rhand = data["is_rhand"]
+        action_name = data["action_name"]
+        nframes = data["nframes"]   # 每个样本的帧数(动作序列长度)
+
+    print(f"nframes.type{type(nframes)}")
+    print(f"nframes:{nframes[:5]}")
+
 if __name__ == "__main__":
     # read_milk_obj()  # 测试milk.obj
 
-    read_h2o_project_pkl()
+    # read_h2o_project_pkl()
+
+    # read_balance_weight()
+
+    read_npz_data()
 
     
