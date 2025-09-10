@@ -329,3 +329,32 @@ def rot6d_to_axis_angle(rot6d):
                 rot6d
             )  # rot6d_to_rotmat(rot6d) 处理后的形状为(B, 3, 3)
         )
+
+def rot6d_to_rotmat(x):
+    # 将 6D 旋转表示转换为 3x3 的旋转矩阵，用于在神经网络中处理旋转信息时的格式转换 参考文献[35]
+    """Convert 6D rotation representation to 3x3 rotation matrix.
+    Based on Zhou et al., "On the Continuity of Rotation Representations in Neural Networks", CVPR 2019
+    Input:
+        (B,6) Batch of 6-D rotation representations
+    Output:
+        (B,3,3) Batch of corresponding rotation matrices 
+        对应 B 个 3x3 的旋转矩阵（每个矩阵描述一个空间旋转）
+    """
+
+    # 步骤1：将6D输入重塑为 (B, 3, 2)，即每个旋转对应3行2列（前两列）
+    x = x.reshape(-1, 3, 2)
+    a1 = x[:, :, 0]  # 第一列向量
+    a2 = x[:, :, 1]  # 第二列向量
+
+    # 步骤2：归一化第一列，得到旋转矩阵的第一行（b1）
+    b1 = F.normalize(a1)
+
+    # 步骤3：计算第二列（b2），确保与b1正交
+    # 先移除a2在b1方向上的分量，再归一化
+    b2 = F.normalize(a2 - torch.einsum("bi,bi->b", b1, a2).unsqueeze(-1) * b1)  # 归一化第二列（y轴，确保与x轴垂直）
+
+    # 步骤4：通过叉乘计算第三列（b3），确保与b1、b2都正交
+    b3 = torch.cross(b1, b2)   # 第三列（z轴）由x轴和y轴叉乘得到（确保与前两列垂直）
+
+    # 步骤5：组合三列得到3x3旋转矩阵
+    return torch.stack((b1, b2, b3), dim=-1)
