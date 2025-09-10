@@ -5,6 +5,15 @@ from lib.utils.rot import(
     rot6d_to_axis_angle
 )
 
+# lib/utils/data_augment.py 数据增强用到该文件
+def proc_numpy(d):
+    if isinstance(d, torch.Tensor):
+        if d.requires_grad:
+            d = d.detach()
+        if d.is_cuda:
+            d = d.cpu()
+        d = d.numpy()
+    return d
 
 def get_hand_layer_out(hand_params, hand_layer):
     bs, nframes = hand_params.shape[:2]

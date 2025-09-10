@@ -1,5 +1,15 @@
-
+tqdm
 pyyaml
+pyrender
+pysdf
+moviepy
 smplx 
-pyyaml
 easydict
+hydra-core
+hydra
+pymeshlab
+# pymeshlab==2021.10
+sentence-transformers
+omegaconf
+pandas
+opencv-python
