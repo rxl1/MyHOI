@@ -1,5 +1,6 @@
 mano:
-  root: "data/mano"
+  # root: "data/mano"
+  root: "/root/xinglin-data/data/mano"
 
   # 骨骼连接关系(不含指尖)
   skeletons: [

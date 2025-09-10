@@ -27,7 +27,7 @@ def process_text_h2o(
         return text
 
 
-def get_data_path_h2o(data_path):
+def get_data_h2o(data_path):
     # 将输入路径转换为Path对象
     data_path = Path (data_path) # data_path = data/h2o
 
@@ -61,8 +61,10 @@ def process_hand_trans_h2o(hand_pose, hand_beta, hand_trans, extrinsic_matrix, h
     ).joints
 
     hand_origin = mano_keypoints_3d[0][0]
+    # origin = torch.unsqueeze(
+    #     hand_origin, 1) + torch.tensor([hand_trans]).cuda().T
     origin = torch.unsqueeze(
-        hand_origin, 1) + torch.tensor([hand_trans]).cuda().T
+        hand_origin, 1) + torch.tensor(hand_trans).cuda().unsqueeze(1)
     origin = origin.float()
     extrinsic_matrix = torch.FloatTensor(extrinsic_matrix).cuda()
     mat_proj = torch.matmul(
@@ -71,8 +73,8 @@ def process_hand_trans_h2o(hand_pose, hand_beta, hand_trans, extrinsic_matrix, h
     return new_trans.cpu().numpy(), hand_origin.cpu().numpy()
 
 if __name__ == "__main__":
-    test_path = r"data/h2o/subject1/h1/0/cam4"
-    hand_pose_manos, obj_pose_rts, cam_poses, action_labels  = get_data_path_h2o(test_path)
+    test_path = r"/root/xinglin-data/data/h2o/subject1/h1/0/cam4"
+    hand_pose_manos, obj_pose_rts, cam_poses, action_labels  = get_data_h2o(test_path)
 
     hand_pose_mano_path = hand_pose_manos[0]
     hand_pose_mano_data = np.loadtxt(hand_pose_mano_path)

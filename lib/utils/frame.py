@@ -7,7 +7,7 @@ def get_frame_align_data_format(key, ndata, max_nframes):
         final_data = np.zeros((ndata, max_nframes, 10), dtype=np.float32)
     elif key == "x_lhand" or key == "x_rhand":
         final_data = np.zeros((ndata, max_nframes, 3+16*6), dtype=np.float32)
-    elif key == "j_lhand" or key == "j_rhand":
+    elif key == "joints_lhand" or key == "joints_rhand":
         final_data = np.zeros((ndata, max_nframes, 21, 3), dtype=np.float32)
     elif key == "obj_alpha":
         final_data = np.zeros((ndata, max_nframes), dtype=np.float32)
@@ -19,6 +19,9 @@ def get_frame_align_data_format(key, ndata, max_nframes):
         final_data = np.zeros((ndata, max_nframes, 3), dtype=np.float32)
     elif "idx" in key or "dist" in key:
         final_data = np.zeros((ndata, max_nframes), dtype=np.float32)
+    else:
+        # 处理未预料到的 key，抛出错误提示
+        raise ValueError(f"未支持的 key: {key}，请检查 key 是否正确或添加对应的处理逻辑")
     return final_data
 
 def align_frame(total_dict):

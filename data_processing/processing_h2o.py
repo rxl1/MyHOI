@@ -39,7 +39,7 @@ from constants.h2o_constants import (
 
 from lib.utils.processing_h2o_utils import(
     process_text_h2o,
-    get_data_path_h2o,
+    get_data_h2o,
     process_hand_pose_h2o,
     process_hand_trans_h2o
 )
@@ -77,10 +77,12 @@ def process_object():
     )
 
     # 加载h2o配置文件
-    h2o_config = load_config("configs/dataset/h2o.yaml")
+    # h2o_config = load_config("configs/dataset/h2o.yaml")
+    h2o_config = load_config("configs/dataset/gpu_h2o.yaml")
     
     # objects_folder = glob.glob(osp.join(h2o_config.obj_root, "*"))  # data/h2o/object/book ... 
     objects_folder = list(Path(h2o_config.obj_root).glob("*"))   # data/h2o/object/book  ...
+    
 
     # pc = point cloud 
     obj_path = {}           # 存储物体路径
@@ -104,14 +106,17 @@ def process_object():
 
             # object_name = object_path.split("/")[-2]  # object_name = book 
             object_name = object_path.parts[-2]     # object_name = book 
+            print(f"object_name:{object_name}")
             key = f"{object_name}"
             obj_pc_verts[key] = sampled_pc_verts
             obj_pc_normals[key] = sampled_pc_normal
             point_sets[key] = point_set[0].cpu().numpy()
             obj_path[key] = "/".join(object_path.parts[-2:])
 
-            os.makedirs("data/h2o", exist_ok=True)
-            with open("data/h2o/h2o_objcet.pkl", "wb") as f:
+            # os.makedirs("data/h2o", exist_ok=True)
+            os.makedirs("/root/xinglin-data/data/h2o", exist_ok=True)
+            # with open("data/h2o/h2o_objcet.pkl", "wb") as f:
+            with open("/root/xinglin-data/data/h2o/h2o_objcet.pkl", "wb") as f:
                 pickle.dump(
                     {
                         "object_names": h2o_obj_name, 
@@ -123,7 +128,9 @@ def process_object():
 
 def process_hand_object():
     start_time = time.time()
-    h2o_config = load_config("configs/dataset/h2o.yaml")
+    # h2o_config = load_config("configs/dataset/h2o.yaml")
+    h2o_config = load_config("configs/dataset/gpu_h2o.yaml")
+    
     data_root = h2o_config.root  # data/h2o/
     data_save_path = h2o_config.npz_data_path # data/h2o/h2o_HOI_data.npz
 
@@ -201,11 +208,11 @@ def process_hand_object():
         subject_cam_paths.extend(str(path) for path in data_root_path.glob(pattern))
     # 排序确保路径顺序一致
     subject_cam_paths.sort()  
-    print(f"enumerasubject_cam_paths:{subject_cam_paths[0:10]}") # data/h2o/subject1/h1/0/cam4 ...
+    # print(f"enumerasubject_cam_paths:{subject_cam_paths[0:10]}") # '/root/xinglin-data/data/h2o/subject1/h1/0/cam4', ...
 
     for data_idx, data_path in enumerate(subject_cam_paths):
         hand_pose_manos, obj_pose_rts, cam_poses, action_labels \
-            = get_data_path_h2o(data_path)
+            = get_data_h2o(data_path)
         print(f"data_path:{data_path}")
         # 初始化上一帧的动作标识为0,用于跟踪动作序列的变化
         prev_action = 0  
@@ -253,10 +260,10 @@ def process_hand_object():
                         action_name = action_list[prev_action] 
                         no_inter_action_name.append(action_name)
                         # 清空当前序列的缓存数据
-                        lhand_pose_list, rhand_pose_list = []
-                        lhand_beta_list, rhand_beta_list = []
-                        lhand_trans_list, rhand_trans_list = []
-                        x_lhand_org_list, x_rhand_org_list = []
+                        lhand_pose_list, rhand_pose_list = [], []
+                        lhand_beta_list, rhand_beta_list = [], []
+                        lhand_trans_list, rhand_trans_list = [], []
+                        x_lhand_org_list, x_rhand_org_list = [], []
                         object_rotmat_list = []
                         # 更新状态并跳过后续处理
                         prev_action = action # 更新“上一个动作”为当前动作
@@ -299,8 +306,8 @@ def process_hand_object():
                     action_total.append(prev_action)          # 动作标签（数字标识
                     action_name_total.append(action_name)     # 动作名称（如“pick up cup
                     nframes_total.append(len(object_rotmat_list)) # 动作序列长度（帧数
-                    subject_total.append(data_path.split("/")[3]) # 数据所属主体（如“subject1
-                    background_total.append(data_path.split("/")[4])  # 场景背景信息
+                    subject_total.append(data_path.split("/")[5]) # 数据所属主体（如“subject1
+                    background_total.append(data_path.split("/")[6])  # 场景背景信息
 
                 lhand_pose_list = []
                 lhand_beta_list = []
@@ -369,10 +376,10 @@ def process_hand_object():
                 action_name = action_list[prev_action] 
                 no_inter_action_name.append(action_name)
                 # 清空当前序列的缓存数据
-                lhand_pose_list, rhand_pose_list = []
-                lhand_beta_list, rhand_beta_list = []
-                lhand_trans_list, rhand_trans_list = []
-                x_lhand_org_list, x_rhand_org_list = []
+                lhand_pose_list, rhand_pose_list = [], []
+                lhand_beta_list, rhand_beta_list = [], []
+                lhand_trans_list, rhand_trans_list = [], []
+                x_lhand_org_list, x_rhand_org_list = [], []
                 object_rotmat_list = []
                 # 更新状态并跳过后续处理
                 prev_action = action # 更新“上一个动作”为当前动作
@@ -415,8 +422,10 @@ def process_hand_object():
             action_total.append(prev_action)          # 动作标签（数字标识
             action_name_total.append(action_name)     # 动作名称（如“pick up cup
             nframes_total.append(len(object_rotmat_list)) # 动作序列长度（帧数
-            subject_total.append(data_path.split("/")[3]) # 数据所属主体  subject1
-            background_total.append(data_path.split("/")[4])  # 场景背景信息  h1,h2,o1,o2,k1,k2...
+            subject_total.append(data_path.split("/")[5]) # 数据所属主体  subject1
+            # print(f"subject_total:{subject_total}")
+            background_total.append(data_path.split("/")[6])  # 场景背景信息  h1,h2,o1,o2,k1,k2...
+            # print(f"background_total:{background_total}")
     
     total_dict = {
         "x_lhand": x_lhand_total,  # 左手 / 右手处理后的特征数据
@@ -436,14 +445,14 @@ def process_hand_object():
     np.savez(  # 将多个数组保存到一个压缩文件中的函数，生成的文件扩展名为 .npz
         data_save_path,
         **final_dict,
-        lcf_idx=np.array(lcf_idx_total), 
-        lcov_idx=np.array(lcov_idx_total), 
-        lchj_idx=np.array(lchj_idx_total), 
-        ldist_value=np.array(ldist_value_total), 
-        rcf_idx=np.array(rcf_idx_total), 
-        rcov_idx=np.array(rcov_idx_total), 
-        rchj_idx=np.array(rchj_idx_total), 
-        rdist_value=np.array(rdist_value_total), 
+        lcf_idx=np.array(lcf_idx_total, dtype=object), 
+        lcov_idx=np.array(lcov_idx_total, dtype=object), 
+        lchj_idx=np.array(lchj_idx_total, dtype=object), 
+        ldist_value=np.array(ldist_value_total, dtype=object), 
+        rcf_idx=np.array(rcf_idx_total, dtype=object), 
+        rcov_idx=np.array(rcov_idx_total, dtype=object), 
+        rchj_idx=np.array(rchj_idx_total, dtype=object), 
+        rdist_value=np.array(rdist_value_total, dtype=object), 
         is_lhand=np.array(is_lhand_total), 
         is_rhand=np.array(is_rhand_total), 
         object_idx=np.array(object_idx_total),
@@ -457,7 +466,8 @@ def process_hand_object():
 
 def process_text():
     # 加载h2o配置文件
-    h2o_config = load_config("configs/dataset/h2o.yaml")
+    # h2o_config = load_config("configs/dataset/h2o.yaml")
+    h2o_config = load_config("configs/dataset/gpu_h2o.yaml")
     text_json = h2o_config.text_json
 
     text_description = {}
@@ -502,7 +512,8 @@ def process_text():
         json.dump(text_description, f)
 
 def process_balance_weights():
-    h2o_config = load_config("configs/dataset/h2o.yaml")
+    # h2o_config = load_config("configs/dataset/h2o.yaml")
+    h2o_config = load_config("configs/dataset/gpu_h2o.yaml")
     npz_data_path = h2o_config.npz_data_path
     balance_weights_path = h2o_config.balance_weights_path  # 平衡权重pkl文件
     text_count_json_path = h2o_config.text_count_json
@@ -526,6 +537,7 @@ def process_balance_weights():
     # for text_key, count in text_counter.items():
     #     print(f"文本: {text_key}  出现次数: {count}")
     text_dict = dict(text_counter)
+    # 打印测试
     # for k, v in text_dict.items():
     #     print(f"k:{k}")
     #     print(f"v:{v}")
@@ -537,11 +549,12 @@ def process_balance_weights():
     with open(text_count_json_path, "w") as f:  # 保存文本计数到 JSON 文件（用于统计分析）
         json.dump(text_dict, f)
 
-def process_text_length():
-
-    h2o_config = load_config("configs/dataset/h2o.yaml")
+def process_action_frame_length():
+    """ 动作样本的帧长 """
+    # h2o_config = load_config("configs/dataset/h2o.yaml")
+    h2o_config = load_config("configs/dataset/gpu_h2o.yaml")
     npz_data_path = h2o_config.npz_data_path
-    text_length_json_path = h2o_config.text_length_json
+    action_frame_length_json_path = h2o_config.action_frame_length_json
     
     with np.load(npz_data_path, allow_pickle=True) as data:
         is_lhand = data["is_lhand"]
@@ -549,7 +562,7 @@ def process_text_length():
         action_name = data["action_name"]
         nframes = data["nframes"]   # 每个样本的帧数(动作序列长度)
 
-    text_dict = {}
+    action_frame_length_dict = {}
     for i in range(len(action_name)):
         # 生成当前样本的文本关键字（如"Pick up cup with left hand."）
         text_key = process_text_h2o(
@@ -561,36 +574,37 @@ def process_text_length():
         num_frames = int(nframes[i])
         if num_frames > 150:
             num_frames = 150
-        if text_key not in text_dict:
-            text_dict[text_key] = [num_frames]
+        if text_key not in action_frame_length_dict:
+            action_frame_length_dict[text_key] = [num_frames]
         else:
-            text_dict[text_key].append(num_frames)
-    # print(f"text_dict:{text_dict}")
+            action_frame_length_dict[text_key].append(num_frames)
+    print(f"text_dict:{action_frame_length_dict}")
 
-    with open(text_length_json_path, "w") as f:
-        json.dump(text_dict, f)
+    with open(action_frame_length_json_path, "w") as f:
+        json.dump(action_frame_length_dict, f)
 
 def print_text_data_num():
-    h2o_config = load_config("configs/dataset/h2o.yaml")
+    # h2o_config = load_config("configs/dataset/h2o.yaml")
+    h2o_config = load_config("configs/dataset/gpu_h2o.yaml")
     npz_data_path = h2o_config.npz_data_path
-    text_length_json_path = h2o_config.text_length_json
+    action_frame_length_json_path = h2o_config.action_frame_length_json
     
     with np.load(npz_data_path, allow_pickle=True) as data:
         action_name = data["action_name"]
     print(f"data num: {len(action_name)}")
     
-    with open(text_length_json_path, "r") as f:
+    with open(action_frame_length_json_path, "r") as f:
         text = json.load(f)
     print(f"text num: {len(text)}")
 
 if __name__ == '__main__':
     # process_object()
-    process_hand_object()
+    # process_hand_object()
     # process_text()
     # process_balance_weights()
-    # process_text_length()
+    # process_action_frame_length()
 
-    # print_text_data_num()
+    print_text_data_num()
 
 
             

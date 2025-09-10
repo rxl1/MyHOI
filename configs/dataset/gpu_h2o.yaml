@@ -1,0 +1,25 @@
+# H2O 数据集
+name: "gpu_h2o"
+
+root: "/root/xinglin-data/data/h2o"
+
+obj_root: "/root/xinglin-data/data/h2o/object"             # 物体根目录
+
+npz_data_path: "/root/xinglin-data/data/h2o/h2o_HOI_data.npz"
+
+data_obj_pc_path: "/root/xinglin-data/data/h2o/h2o_objcet.pkl"    # 经过点云处理后的物体pkl文件路径
+
+text_json: "/root/xinglin-data/data/h2o/h2o_text.json"     # 每个动作序列样本对应的三种不同时态
+
+balance_weights_path: "/root/xinglin-data/data/h2o/h2o_balance_weights.pkl" 
+
+text_count_json: "/root/xinglin-data/data/h2o/h2o_text_count.json"    # 动作样本计数  'Place cappuccino with right hand.': 4,
+
+action_frame_length_json: "/root/xinglin-data/data/h2o/h2o_action_frame_length.json"  # 动作样本的帧长 Place cappuccino with right hand. : [62, 59, 35, 118]
+
+flat_hand: True    # 是否平展手
+max_nframes: 150   # 最大帧长度
+data_ratio: 1.0    # 数据比例
+augm: False        # 是否开启数据增强
+data_num: 660      # 数据数量
+text_num: 68       # 文本数量

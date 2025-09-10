@@ -315,7 +315,8 @@ def rot6d_to_rotmat(x):
     b2 = F.normalize(a2 - torch.einsum("bi,bi->b", b1, a2).unsqueeze(-1) * b1)  # 归一化第二列（y轴，确保与x轴垂直）
 
     # 步骤4：通过叉乘计算第三列（b3），确保与b1、b2都正交
-    b3 = torch.cross(b1, b2)   # 第三列（z轴）由x轴和y轴叉乘得到（确保与前两列垂直）
+    # b3 = torch.cross(b1, b2)   # 第三列（z轴）由x轴和y轴叉乘得到（确保与前两列垂直）
+    b3 = torch.linalg.cross(b1, b2, dim=1)
 
     # 步骤5：组合三列得到3x3旋转矩阵
     return torch.stack((b1, b2, b3), dim=-1)

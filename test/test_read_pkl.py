@@ -31,7 +31,9 @@ import numpy as np
 def read_h2o_project_pkl():
     
     # 定义pkl文件路径（与保存路径对应）
-    pkl_path = r"data\h2o\h2o_objcet.pkl"
+    # pkl_path = r"data\h2o\h2o_objcet.pkl"
+    # pkl_path = "/root/xinglin-data/data/h2o/h2o_objcet.pkl"
+    pkl_path = "/root/xinglin-data/data/h2o/obj.pkl"
 
     # 读取pkl文件
     with open(pkl_path, "rb") as f:
@@ -49,11 +51,17 @@ def read_h2o_project_pkl():
     print(f"obj_pc_verts.keys:{data['obj_pc_verts'].keys()}")
     print(f"obj_pc_verts book.shape:{data['obj_pc_verts']['book'].shape}")
     print(f"obj_pc_verts book:{data['obj_pc_verts']['book']}")
-    # print(f"obj_pc_verts:{data['obj_pc_verts']['h2o'].shape}")
+    print(f"obj_pc_verts:{data['obj_pc_verts']['h2o'].shape}")
 
     # 访问数据中的字段（根据保存时的键名）
-    object_names = data["object_names"]  # 物体名称列表
-    obj_pc_verts = data["obj_pc_verts"]          # 物体点云数据（字典，键为物体名称，值为点云坐标）
+    # object_names = data["object_names"]  # 物体名称列表
+    # obj_pc_verts = data["obj_pc_verts"]          # 物体点云数据（字典，键为物体名称，值为点云坐标）
+    # obj_pc_normals = data["obj_pc_normals"]  # 点云法向量（字典）
+    # point_sets = data["point_sets"]    # 采样点索引（字典）
+    # obj_paths = data["obj_path"]       # 物体模型文件路径（字典）
+
+    object_names = data["object_name"]  # 物体名称列表
+    obj_pc_verts = data["obj_pcs"]          # 物体点云数据（字典，键为物体名称，值为点云坐标）
     obj_pc_normals = data["obj_pc_normals"]  # 点云法向量（字典）
     point_sets = data["point_sets"]    # 采样点索引（字典）
     obj_paths = data["obj_path"]       # 物体模型文件路径（字典）
@@ -68,11 +76,42 @@ def read_h2o_project_pkl():
         print(f"point_sets数据形状:{point_sets[first_obj_name].shape}")  # 应为 (1024, 3)
         print(f"obj_paths:{obj_paths[first_obj_name]}")  # 应为 (1024, 3)（1024个3D点）
 
+def read_h2o_project_pkl_author():
+    
+    # 定义pkl文件路径（与保存路径对应）
+    # pkl_path = r"data\h2o\h2o_objcet.pkl"
+    # pkl_path = "/root/xinglin-data/data/h2o/h2o_objcet.pkl"
+    pkl_path = "/root/xinglin-data/data/h2o/obj.pkl"
+
+    # 读取pkl文件
+    with open(pkl_path, "rb") as f:
+        # 加载数据（返回的是保存时的字典对象）
+        data = pickle.load(f)
+
+    print(f"data的类型:{type(data)}")
+    print(f"data的所有key:{data.keys()}")
+
+    object_names = data["object_name"]  # 物体名称列表
+    obj_pc_verts = data["obj_pcs"]          # 物体点云数据（字典，键为物体名称，值为点云坐标）
+    obj_pc_normals = data["obj_pc_normals"]  # 点云法向量（字典）
+    point_sets = data["point_sets"]    # 采样点索引（字典）
+    obj_paths = data["obj_path"]       # 物体模型文件路径（字典）
+
+    # 示例：打印第一个物体的点云信息
+    if object_names:
+        first_obj_name = object_names[1]
+        print(f"示例...")
+        print(f"第一个物体名称:{first_obj_name}")
+        print(f"点云数据形状:{obj_pc_verts[first_obj_name].shape}")  # 应为 (1024, 3)（1024个3D点）
+        print(f"法向量数据形状:{obj_pc_normals[first_obj_name].shape}")  # 应为 (1024, 3)
+        print(f"point_sets数据形状:{point_sets[first_obj_name].shape}")  # 应为 (1024, 3)
+        print(f"obj_paths:{obj_paths[first_obj_name]}")  # 应为 (1024, 3)（1024个3D点）
 
 def read_milk_obj():
-    path = r"data\h2o\object\milk\milk.obj"
+    path = "/root/xinglin-data/data/h2o/object/book/book.obj"
     mesh = trimesh.load(path, maintain_order=True)
-    mesh.show()
+    # mesh.show()
+
 
 def read_balance_weight():
     pkl_path = r"data\h2o\h2o_balance_weights.pkl"
@@ -97,13 +136,14 @@ def read_npz_data():
     print(f"nframes.type{type(nframes)}")
     print(f"nframes:{nframes[:5]}")
 
+
 if __name__ == "__main__":
     # read_milk_obj()  # 测试milk.obj
 
-    # read_h2o_project_pkl()
+    read_h2o_project_pkl_author()
 
     # read_balance_weight()
 
-    read_npz_data()
+    # read_npz_data()
 
     
